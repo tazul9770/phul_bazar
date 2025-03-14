@@ -21,7 +21,6 @@ class FlowerViewSet(ModelViewSet):
      - Support searching by name, description, and category
      - Support ordering by price and updated_at
     """
-    queryset = Flower.objects.all()
     serializer_class = FlowerSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = FlowerFilter
@@ -29,6 +28,9 @@ class FlowerViewSet(ModelViewSet):
     search_fields = ['name', 'description']
     ordering_fields = ['price', 'updated_at']
     permission_classes = [IsAdminOrReadOnly]
+
+    def get_queryset(self):
+        return Flower.objects.prefetch_related('images').all()
 
     @swagger_auto_schema(
         operation_summary='Retrive a list of flowers'
