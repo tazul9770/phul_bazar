@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from flower.validators import validate_file_size
+from cloudinary.models import CloudinaryField
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -25,8 +26,7 @@ class Flower(models.Model):
 class FlowerImage(models.Model):
     flower = models.ForeignKey(
         Flower, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(
-        upload_to="flowers/images/", validators=[validate_file_size])
+    image = CloudinaryField('image')
     
 class Review(models.Model):
     flower = models.ForeignKey(Flower, on_delete=models.CASCADE)

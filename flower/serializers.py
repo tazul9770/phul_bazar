@@ -13,6 +13,7 @@ class CategorySerializer(serializers.ModelSerializer):
         read_only=True, help_text="Return the number product in this category")
     
 class FlowerImageSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField()
     class Meta:
         model = FlowerImage
         fields = ['id', 'image']
