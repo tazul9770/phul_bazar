@@ -18,9 +18,10 @@ class FlowerImageSerializer(serializers.ModelSerializer):
         fields = ['id', 'image']
 
 class FlowerSerializer(serializers.ModelSerializer):
+    images = FlowerImageSerializer(many=True, read_only=True)
     class Meta:
         model = Flower
-        fields = ['id', 'name', 'description', 'price', 'stock', 'category', 'price_with_tax']
+        fields = ['id', 'name', 'description', 'price', 'stock', 'category', 'price_with_tax', 'images']
 
     price_with_tax = serializers.SerializerMethodField(
         method_name='calculate_tax')

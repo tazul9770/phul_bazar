@@ -9,6 +9,9 @@ from order.services import OrderService
 from rest_framework.response import Response
 
 class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericViewSet):
+    """
+    - Only authenticated user can view Cart
+    """
     serializer_class = CartSerializer
     permission_classes = [IsAuthenticated]
 
@@ -16,6 +19,8 @@ class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, Gener
         serializer.save(user=self.request.user)
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Cart.objects.none()
         return Cart.objects.prefetch_related('items__flower').filter(user=self.request.user)
 
 class CartItemViewSet(ModelViewSet):
@@ -30,12 +35,15 @@ class CartItemViewSet(ModelViewSet):
         return CartItemSerializer
     
     def get_serializer_context(self):
-        return {'cart_id':self.kwargs['cart_pk']}
+        return {'cart_id':self.kwargs.get('cart_pk')}
 
     def get_queryset(self):
-        return CartItem.objects.select_related('flower').filter(cart_id=self.kwargs['cart_pk'])
+        return CartItem.objects.select_related('flower').filter(cart_id=self.kwargs.get('cart_pk'))
     
 class OrderViewSet(ModelViewSet):
+    """
+    - Only authenticated user can create order
+    """
     http_method_names = ['get', 'post', 'delete', 'patch', 'head', 'options']
 
     @action(detail=True, methods=['post'])
@@ -68,9 +76,13 @@ class OrderViewSet(ModelViewSet):
         return OrderSerializer
 
     def get_serializer_context(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return super().get_serializer_context()
         return {'user_id':self.request.user.id, 'user': self.request.user}
 
     def get_queryset(self):
         if self.request.user.is_staff:
             return Order.objects.prefetch_related('items__flower').all()
+        if getattr(self, 'swagger_fake_view', False):
+            return Order.objects.none()
         return Order.objects.prefetch_related('items__flower').filter(user=self.request.user)
