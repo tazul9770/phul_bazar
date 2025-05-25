@@ -44,6 +44,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
     'django.middleware.security.SecurityMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -78,6 +79,7 @@ WSGI_APPLICATION = 'phul_bazar.wsgi.app'
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
 ]
+
 
 INTERNAL_IPS = [
     # ...
