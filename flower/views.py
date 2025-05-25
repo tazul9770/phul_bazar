@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework.viewsets import ModelViewSet
 from flower.models import Flower, Category, Review, FlowerImage
 from flower.serializers import FlowerSerializer, CategorySerializer, ReviewSerializer, FlowerImageSerializer

@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'drf_yasg',
     'django_filters',
+    "corsheaders",
     'rest_framework',
     'djoser',
     'api',
@@ -73,6 +74,10 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'phul_bazar.wsgi.app'
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173',
+]
 
 INTERNAL_IPS = [
     # ...
