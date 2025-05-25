@@ -76,7 +76,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'phul_bazar.wsgi.app'
 
 CORS_ALLOWED_ORIGINS = [
-    'https://phul-bazar.vercel.app',
+    'http://localhost:5173',
 ]
 
 INTERNAL_IPS = [
