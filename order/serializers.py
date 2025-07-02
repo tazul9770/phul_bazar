@@ -44,27 +44,65 @@ class UpdateCartItemSerializer(serializers.ModelSerializer):
         model = CartItem
         fields = ['quantity']
 
+# old CartItemSerializer
+
+# class CartItemSerializer(serializers.ModelSerializer):
+#     flower = SimpleFlowerSerializer()
+#     total_price = serializers.SerializerMethodField(method_name='get_total_price')
+#     class Meta:
+#         model = CartItem
+#         fields = ['id', 'flower', 'quantity', 'total_price']
+
+#     def get_total_price(self, cart_item: CartItem):
+#         return cart_item.quantity * cart_item.flower.price
+
+# New CartItemSerializer
+
 class CartItemSerializer(serializers.ModelSerializer):
     flower = SimpleFlowerSerializer()
-    total_price = serializers.SerializerMethodField(method_name='get_total_price')
+    total_price = serializers.SerializerMethodField()
+
     class Meta:
         model = CartItem
         fields = ['id', 'flower', 'quantity', 'total_price']
 
-    def get_total_price(self, cart_item: CartItem):
-        return cart_item.quantity * cart_item.flower.price
+    def get_total_price(self, obj):
+        return obj.flower.price * obj.quantity
+
+    
+#Old CartSerializer
+
+# class CartSerializer(serializers.ModelSerializer):
+#     items = CartItemSerializer(many=True, read_only=True)
+#     total_price = serializers.SerializerMethodField(method_name='get_total_price')
+#     class Meta:
+#         model = Cart
+#         fields = ['id', 'user', 'items', 'total_price']
+#         read_only_fields = ['user']
+
+#     def get_total_price(self, cart: Cart):
+#         return sum(
+#             [item.flower.price * item.quantity for item in cart.items.all()])
+
+#New CartSerializer
 
 class CartSerializer(serializers.ModelSerializer):
-    items = CartItemSerializer(many=True, read_only=True)
-    total_price = serializers.SerializerMethodField(method_name='get_total_price')
+    items = serializers.SerializerMethodField()
+    total_price = serializers.SerializerMethodField()
+
     class Meta:
         model = Cart
         fields = ['id', 'user', 'items', 'total_price']
         read_only_fields = ['user']
 
-    def get_total_price(self, cart: Cart):
-        return sum(
-            [item.flower.price * item.quantity for item in cart.items.all()])
+    def get_items(self, obj):
+        cart_items = CartItem.objects.filter(cart=obj).select_related('flower')
+        return CartItemSerializer(cart_items, many=True).data
+
+    def get_total_price(self, obj):
+        cart_items = CartItem.objects.filter(cart=obj).select_related('flower')
+        return sum(item.flower.price * item.quantity for item in cart_items)
+
 
 
     
