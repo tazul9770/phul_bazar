@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ['id', 'name','description', 'flower_count']
+        fields = ['id', 'name', 'flower_count']
 
     flower_count = serializers.IntegerField(
         read_only=True, help_text="Return the number product in this category")
@@ -20,6 +20,7 @@ class FlowerImageSerializer(serializers.ModelSerializer):
 
 class FlowerSerializer(serializers.ModelSerializer):
     images = FlowerImageSerializer(many=True, read_only=True)
+    category = CategorySerializer()
     class Meta:
         model = Flower
         fields = ['id', 'name', 'description', 'price', 'stock', 'category', 'price_with_tax', 'images']
