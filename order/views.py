@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.decorators import action
 from order.services import OrderService
 from rest_framework.response import Response
+from rest_framework import status
 
 class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericViewSet):
     """
@@ -22,6 +23,15 @@ class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, Gener
         if getattr(self, 'swagger_fake_view', False):
             return Cart.objects.none()
         return Cart.objects.prefetch_related('items__flower').filter(user=self.request.user)
+    
+    def create(self, request, *args, **kwargs):
+        existing_cart = Cart.objects.filter(user=request.user).first()
+
+        if existing_cart:
+            serializer = self.get_serializer(existing_cart)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return super().create(request, *args, **kwargs)
+
 
 class CartItemViewSet(ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete']
