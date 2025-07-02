@@ -25,7 +25,7 @@ class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, Gener
         return Cart.objects.prefetch_related('items__flower').filter(user=self.request.user)
     
     def create(self, request, *args, **kwargs):
-        existing_cart = Cart.objects.prefetch_related('items__flower').filter(user=request.user).first()
+        existing_cart = Cart.objects.filter(user=request.user).first()
 
         if existing_cart:
             serializer = self.get_serializer(existing_cart)
