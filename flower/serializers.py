@@ -20,7 +20,6 @@ class FlowerImageSerializer(serializers.ModelSerializer):
 
 class FlowerSerializer(serializers.ModelSerializer):
     images = FlowerImageSerializer(many=True, read_only=True)
-    category = CategorySerializer()
     class Meta:
         model = Flower
         fields = ['id', 'name', 'description', 'price', 'stock', 'category', 'price_with_tax', 'images']
