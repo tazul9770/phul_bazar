@@ -12,6 +12,7 @@ from rest_framework.decorators import api_view
 from sslcommerz_lib import SSLCOMMERZ 
 from django.conf import settings as main_settings
 from django.shortcuts import HttpResponseRedirect
+from rest_framework.views import APIView
 
 class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericViewSet):
     """
@@ -154,3 +155,11 @@ def payment_cancel(request):
 @api_view(['POST'])
 def payment_fail(request):
     return HttpResponseRedirect(f"{main_settings.FRONTEND_URL}/dashboard/orders/")
+
+class HasOrderedProduct(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, flower_id):
+        user = request.user
+        has_ordered = OrderItem.objects.filter(order__user = user, flower_id=flower_id).exists()
+        return Response({"has_ordered":has_ordered})
