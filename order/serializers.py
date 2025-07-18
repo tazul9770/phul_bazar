@@ -2,6 +2,7 @@ from rest_framework import serializers
 from order.models import Cart, CartItem, Order, OrderItem
 from flower.models import Flower
 from order.services import OrderService
+from users.models import User
 
 class EmptySerializer(serializers.Serializer):
     pass
@@ -102,8 +103,15 @@ class UpdateOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ['status']
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User  
+        fields = ['id', 'username', 'email', 'address', 'phone_num']
+
     
 class OrderSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
     items = OrderItemSerializer(many=True)
     class Meta:
         model = Order
