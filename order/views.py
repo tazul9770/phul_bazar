@@ -8,7 +8,7 @@ from rest_framework.decorators import action
 from order.services import OrderService
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from sslcommerz_lib import SSLCOMMERZ 
 from django.conf import settings as main_settings
 from django.shortcuts import HttpResponseRedirect
@@ -101,60 +101,85 @@ class OrderViewSet(ModelViewSet):
         if getattr(self, 'swagger_fake_view', False):
             return Order.objects.none()
         return Order.objects.prefetch_related('items__flower').filter(user=self.request.user)
-    
+
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def initiate_payment(request):
     user = request.user
     amount = request.data.get("amount")
     order_id = request.data.get("orderId")
     items_num = request.data.get("itemsNum")
 
-    settings = { 'store_id': 'phulb686e794212a0c', 'store_pass': 'phulb686e794212a0c@ssl', 'issandbox': True }
-    sslcz = SSLCOMMERZ(settings)
-    post_body = {}
-    post_body['total_amount'] = amount
-    post_body['currency'] = "BDT"
-    post_body['tran_id'] = f"txn_{order_id}"
-    post_body['success_url'] = f"{main_settings.BACKEND_URL}/api/v1/payment/success/"
-    post_body['fail_url'] = f"{main_settings.BACKEND_URL}/api/v1/payment/fail/"
-    post_body['cancel_url'] = f"{main_settings.BACKEND_URL}/api/v1/payment/cancel/"
-    post_body['emi_option'] = 0
-    post_body['cus_name'] = f"{user.first_name} {user.last_name}"
-    post_body['cus_email'] = user.email
-    post_body['cus_phone'] = user.phone_num
-    post_body['cus_add1'] = user.address
-    post_body['cus_city'] = "Dhaka"
-    post_body['cus_country'] = "Bangladesh"
-    post_body['shipping_method'] = "NO"
-    post_body['multi_card_name'] = ""
-    post_body['num_of_item'] = items_num
-    post_body['product_name'] = "E-commerce products"
-    post_body['product_category'] = "General"
-    post_body['product_profile'] = "general"
+    # Check missing fields
+    if not all([amount, order_id, items_num]):
+        return Response({"error": "Missing required parameters."}, status=status.HTTP_400_BAD_REQUEST)
 
+    #Prepare SSLCommerz
+    ssl_settings = {
+        'store_id': main_settings.STORE_ID,
+        'store_pass': main_settings.STORE_PASS,
+        'issandbox': True
+    }
+    sslcz = SSLCOMMERZ(ssl_settings)
+
+    post_body = {
+        'total_amount': amount,
+        'currency': "BDT",
+        'tran_id': f"txn_{order_id}",
+        'success_url': f"{main_settings.BACKEND_URL}/api/v1/payment/success/",
+        'fail_url': f"{main_settings.BACKEND_URL}/api/v1/payment/fail/",
+        'cancel_url': f"{main_settings.BACKEND_URL}/api/v1/payment/cancel/",
+        'emi_option': 0,
+        'cus_name': f"{user.first_name} {user.last_name}",
+        'cus_email': user.email,
+        'cus_phone': getattr(user, 'phone_num', ''),
+        'cus_add1': getattr(user, 'address', ''),
+        'cus_city': "Dhaka",
+        'cus_country': "Bangladesh",
+        'shipping_method': "NO",
+        'multi_card_name': "",
+        'num_of_item': items_num,
+        'product_name': "E-commerce products",
+        'product_category': "General",
+        'product_profile': "general"
+    }
 
     response = sslcz.createSession(post_body)
-    
-    if response.get('status') == 'SUCCESS':
-        return Response({"payment_url" : response['GatewayPageURL']})
-    
-    return Response({"error" : "Payment initiation failed!"}, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['POST'])
+    if response.get('status') == 'SUCCESS' and 'GatewayPageURL' in response:
+        return Response({"payment_url": response['GatewayPageURL']})
+    
+    return Response({"error": "Payment initiation failed!"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET', 'POST'])
 def payment_success(request):
-    order_id = request.data.get("tran_id").split("_")[1]
-    order = Order.objects.get(id=order_id)
-    order.status = "Ready to ship"
-    order.save()
+    tran_id = request.data.get("tran_id") or request.GET.get("tran_id")
+
+    if not tran_id or "_" not in tran_id:
+        return Response({"error": "Invalid or missing transaction ID."}, status=status.HTTP_400_BAD_REQUEST)
+
+    order_id = tran_id.split("_")[1]
+
+    try:
+        order = Order.objects.get(id=order_id)
+        order.status = "Ready to ship"
+        order.save()
+    except Order.DoesNotExist:
+        return Response({"error": "Order not found."}, status=status.HTTP_404_NOT_FOUND)
+
     return HttpResponseRedirect(f"{main_settings.FRONTEND_URL}/dashboard/orders/")
 
-@api_view(['POST'])
+
+@api_view(['GET', 'POST'])
 def payment_cancel(request):
     return HttpResponseRedirect(f"{main_settings.FRONTEND_URL}/dashboard/orders/")
 
-@api_view(['POST'])
+
+@api_view(['GET', 'POST'])
 def payment_fail(request):
     return HttpResponseRedirect(f"{main_settings.FRONTEND_URL}/dashboard/orders/")
+
 
 class HasOrderedProduct(APIView):
     permission_classes = [IsAuthenticated]
