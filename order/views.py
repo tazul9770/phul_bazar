@@ -118,7 +118,7 @@ def initiate_payment(request):
     ssl_settings = {
         'store_id': main_settings.STORE_ID,
         'store_pass': main_settings.STORE_PASS,
-        'issandbox': True
+        'issandbox': False
     }
     sslcz = SSLCOMMERZ(ssl_settings)
 
