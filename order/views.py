@@ -109,7 +109,7 @@ def initiate_payment(request):
     order_id = request.data.get("orderId")
     items_num = request.data.get("itemsNum")
 
-    settings = { 'store_id': main_settings.STORE_ID, 'store_pass': main_settings.STORE_PASS, 'issandbox': True }
+    settings = { 'store_id': main_settings.STORE_ID, 'store_pass': main_settings.STORE_PASS, 'issandbox': False }
     sslcz = SSLCOMMERZ(settings)
     post_body = {}
     post_body['total_amount'] = amount
