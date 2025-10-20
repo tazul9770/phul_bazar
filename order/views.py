@@ -13,6 +13,7 @@ from sslcommerz_lib import SSLCOMMERZ
 from django.conf import settings as main_settings
 from django.shortcuts import HttpResponseRedirect
 from rest_framework.views import APIView
+from order.pagination import CustomPagination
 
 class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericViewSet):
     """
@@ -60,6 +61,8 @@ class OrderViewSet(ModelViewSet):
     - Only authenticated user can create order
     """
     http_method_names = ['get', 'post', 'delete', 'patch', 'head', 'options']
+
+    pagination_class = CustomPagination
 
     @action(detail=True, methods=['post'])
     def cancel(self, request, pk=None):
