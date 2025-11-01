@@ -21,7 +21,7 @@ class ContactView(ModelViewSet):
                 subject="Welcome to Phul_Bazar",
                 message='Thank you for reaching out! I will get back to you shortly.',
                 from_email=settings.EMAIL_HOST_USER,
-                recipient_list=[settings.EMAIL_HOST_USER],
+                recipient_list=[user_email],
                 fail_silently=False,
             )
             send_mail(
