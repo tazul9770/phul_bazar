@@ -21,13 +21,13 @@ class ContactView(ModelViewSet):
                 subject="Welcome to Phul_Bazar",
                 message='Thank you for reaching out! I will get back to you shortly.',
                 from_email=settings.EMAIL_HOST_USER,
-                recipient_list=[user_email],
+                recipient_list=[settings.EMAIL_HOST_USER],
                 fail_silently=False,
             )
             send_mail(
                 subject="Phul_Bazar Customer send mail",
                 message=f"{number}\n\n{user_email}\n\n{user_msg}",
-                from_email=user_email,
+                from_email=settings.EMAIL_HOST_USER,
                 recipient_list=[settings.EMAIL_HOST_USER],
                 fail_silently=False,
             )
