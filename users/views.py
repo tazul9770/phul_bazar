@@ -6,6 +6,10 @@ from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework.response import Response
 from users.pagination import CustomPagination
+from djoser.views import UserViewSet
+
+class CustomUserViewSet(UserViewSet):
+    pagination_class = CustomPagination
 
 class ContactView(ModelViewSet):
     queryset = Contact.objects.all()
@@ -36,3 +40,4 @@ class ContactView(ModelViewSet):
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
