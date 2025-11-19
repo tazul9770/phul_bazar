@@ -7,7 +7,8 @@ from django.conf import settings
 from rest_framework.response import Response
 from users.pagination import CustomPagination
 
-class ContactView(ModelViewSet):
+
+class ContactViewSet(ModelViewSet):
     queryset = Contact.objects.all()
     serializer_class = ContactSerializer
 
@@ -17,23 +18,26 @@ class ContactView(ModelViewSet):
         serializer = ContactSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
+
+            # Send welcome email to the user
             user_email = serializer.data['email']
-            user_msg = serializer.data['write_something']
-            number = serializer.data['phone_number']
+            user_msg = serializer.data['comment']
+
             send_mail(
-                subject="Welcome to Phul_Bazar",
+                subject='Welcome to Our Phul Bazar!',
                 message='Thank you for reaching out! We will get back to you shortly.',
                 from_email=settings.EMAIL_HOST_USER,
                 recipient_list=[user_email],
                 fail_silently=False,
             )
+
             send_mail(
-                subject="Phul_Bazar Customer send mail",
-                message=f"{number}\n\n{user_email}\n\n{user_msg}",
+                subject="Customer send message",
+                message=f"{user_email} send you message\n\n{user_msg}",
                 from_email=user_email,
                 recipient_list=[settings.EMAIL_HOST_USER],
                 fail_silently=False,
             )
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-

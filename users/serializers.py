@@ -15,15 +15,14 @@ class UserSerializer(BaseUserSerializer):
         read_only_fields = ['is_staff']
 
 class ContactSerializer(serializers.ModelSerializer):
-
-    def validate_phone_number(self, value):
-        if not value.isdigit():
-            raise serializers.ValidationError("Phone number must contain digits only.")
-        if len(value) != 11:
-            raise serializers.ValidationError("Phone number must be exactly 11 digits.")
-        return value
-
     class Meta:
         model = Contact
-        fields = ['id', 'email', 'phone_number', 'write_something']
+        fields = ['id', 'email', 'phone_number', 'comment']
+
+    def validate_phone_number(self, number):
+        if not number.isdigit():
+            raise serializers.ValidationError("Phone number must contain only digits")
+        if len(number) != 11:
+            raise serializers.ValidationError("Phone number must be exactly 11 digits.")
+        return number
 

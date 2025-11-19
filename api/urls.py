@@ -2,15 +2,14 @@ from django.urls import path, include
 from rest_framework_nested import routers
 from flower.views import FlowerViewSet, CategoryViewSet, ReviewViewSet, FlowerImageViewSet
 from order.views import CartViewSet, CartItemViewSet, OrderViewSet, initiate_payment, payment_success, payment_cancel, payment_fail, HasOrderedProduct
-from users.views import ContactView
+from users.views import ContactViewSet
 
 router = routers.DefaultRouter()
-
 router.register('flowers', FlowerViewSet, basename='flowers')
 router.register('category', CategoryViewSet)
 router.register('carts', CartViewSet, basename='carts')
 router.register('orders', OrderViewSet, basename='orders')
-router.register('contact', ContactView, basename='contact')
+router.register('contact', ContactViewSet, basename='contact')
 
 flower_router = routers.NestedDefaultRouter(router, 'flowers', lookup = 'flower')
 flower_router.register('reviews', ReviewViewSet, basename='flower-review')
