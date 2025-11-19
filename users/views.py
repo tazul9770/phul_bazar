@@ -17,12 +17,12 @@ class ContactView(ModelViewSet):
         serializer = ContactSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            user_email = serializer.validated_data['email']
-            user_msg = serializer.validated_data['write_something']
-            number = serializer.validated_data['phone_number']
+            user_email = serializer.data['email']
+            user_msg = serializer.data['write_something']
+            number = serializer.data['phone_number']
             send_mail(
                 subject="Welcome to Phul_Bazar",
-                message='Thank you for reaching out! I will get back to you shortly.',
+                message='Thank you for reaching out! We will get back to you shortly.',
                 from_email=settings.EMAIL_HOST_USER,
                 recipient_list=[user_email],
                 fail_silently=False,
