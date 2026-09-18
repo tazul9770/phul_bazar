@@ -6,13 +6,19 @@ from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework.response import Response
 from users.pagination import CustomPagination
+from rest_framework.permissions import IsAdminUser, AllowAny
 
 
 class ContactViewSet(ModelViewSet):
-    queryset = Contact.objects.all()
+    queryset = Contact.objects.all().order_by('created_at')
     serializer_class = ContactSerializer
-
     pagination_class = CustomPagination
+
+    def get_permissions(self):
+        if self.action in ['update', 'partial_update', 'destroy']: 
+            return [IsAdminUser()]
+        return [AllowAny()]
+
 
     def create(self, request, *args, **kwargs):
         serializer = ContactSerializer(data=request.data)
@@ -24,7 +30,7 @@ class ContactViewSet(ModelViewSet):
             user_msg = serializer.data['comment']
 
             send_mail(
-                subject='Welcome to Our Phul Bazar!',
+                subject='Welcome to smart village!',
                 message='Thank you for reaching out! We will get back to you shortly.',
                 from_email=settings.EMAIL_HOST_USER,
                 recipient_list=[user_email],
@@ -32,7 +38,7 @@ class ContactViewSet(ModelViewSet):
             )
 
             send_mail(
-                subject="Customer send message",
+                subject="Phul Bazar",
                 message=f"{user_email} send you message\n\n{user_msg}",
                 from_email=user_email,
                 recipient_list=[settings.EMAIL_HOST_USER],

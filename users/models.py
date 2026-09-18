@@ -22,3 +22,6 @@ class Contact(models.Model):
     phone_number = models.CharField(max_length=11)
     comment = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.email
