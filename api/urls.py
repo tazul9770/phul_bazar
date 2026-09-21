@@ -3,6 +3,7 @@ from rest_framework_nested import routers
 from flower.views import FlowerViewSet, CategoryViewSet, ReviewViewSet, FlowerImageViewSet
 from order.views import CartViewSet, CartItemViewSet, OrderViewSet, initiate_payment, payment_success, payment_cancel, payment_fail, HasOrderedProduct
 from users.views import ContactViewSet
+from api.views import DashboardStatsView
 
 router = routers.DefaultRouter()
 router.register('flowers', FlowerViewSet, basename='flowers')
@@ -28,5 +29,6 @@ urlpatterns = [
     path('payment/success/', payment_success, name="payment-success"),
     path('payment/cancel/', payment_cancel, name="payment-cancel"),
     path('payment/fail/', payment_fail, name="payment-fail"),
-    path("orders/has_ordered/<int:flower_id>/", HasOrderedProduct.as_view())
+    path("orders/has_ordered/<int:flower_id>/", HasOrderedProduct.as_view()),
+    path("dashboard/stats/", DashboardStatsView.as_view(), name="dashboard-stats"),
 ]

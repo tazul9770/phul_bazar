@@ -30,7 +30,7 @@ class ContactViewSet(ModelViewSet):
             user_msg = serializer.data['comment']
 
             send_mail(
-                subject='Welcome to smart village!',
+                subject='Welcome to phul bazar!',
                 message='Thank you for reaching out! We will get back to you shortly.',
                 from_email=settings.EMAIL_HOST_USER,
                 recipient_list=[user_email],
