@@ -80,7 +80,7 @@ class OrderViewSet(ModelViewSet):
         return Response({'status': f'Order status updated to {request.data['status']}'})
 
     def get_permissions(self):
-        if self.action in ['update_status', 'destroy']:
+        if self.action == 'update_status':
             return [IsAdminUser()]
         return [IsAuthenticated()]
 
@@ -100,10 +100,12 @@ class OrderViewSet(ModelViewSet):
 
     def get_queryset(self):
         if self.request.user.is_staff:
-            return Order.objects.prefetch_related('items__flower').all()
+            return Order.objects.prefetch_related('items__flower').all().order_by('-created_at')
+
         if getattr(self, 'swagger_fake_view', False):
             return Order.objects.none()
-        return Order.objects.prefetch_related('items__flower').filter(user=self.request.user)
+        return Order.objects.prefetch_related('items__flower').filter(user=self.request.user).order_by('-created_at')
+
 
 @api_view(['POST'])
 def initiate_payment(request):
