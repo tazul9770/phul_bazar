@@ -10,7 +10,9 @@ from flower.paginations import DefaultPagination
 from api.permissions import IsAdminOrReadOnly
 from flower.permissions import IsReviewAuthorOrReadonly
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import generics, permissions
+from rest_framework import permissions
+from rest_framework.views import APIView
+from rest_framework.response import Response
 
 class FlowerViewSet(ModelViewSet):
 
@@ -96,17 +98,26 @@ class ReviewViewSet(ModelViewSet):
         flower_id = self.kwargs.get('flower_pk')
         return {'flower_id': flower_id}
 
-class MyReviewListAPIView(generics.ListAPIView):
-    """
-    GET /api/my-reviews/
-    Returns only the logged-in user's reviews, newest first.
-    """
+
+class MyReviewListAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
- 
-    def get_queryset(self):
-        return (
+
+    def get(self, request):
+        reviews = (
             Review.objects
-            .filter(user=self.request.user)
+            .filter(user=request.user)
             .select_related('flower')
             .order_by('-created_at')
         )
+        data = [
+            {
+                "id": review.id,
+                "flower_name": review.flower.name,
+                "flower_image": review.flower.image.url if review.flower.image else None,
+                "ratings": review.ratings,
+                "comment": review.comment,
+                "date": review.created_at.strftime("%Y-%m-%d"),
+            }
+            for review in reviews
+        ]
+        return Response(data)
