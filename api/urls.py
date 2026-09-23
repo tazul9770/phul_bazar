@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework_nested import routers
-from flower.views import FlowerViewSet, CategoryViewSet, ReviewViewSet, FlowerImageViewSet
+from flower.views import FlowerViewSet, CategoryViewSet, ReviewViewSet, FlowerImageViewSet, MyReviewListAPIView
 from order.views import CartViewSet, CartItemViewSet, OrderViewSet, initiate_payment, payment_success, payment_cancel, payment_fail, HasOrderedProduct
 from users.views import ContactViewSet
 from api.views import DashboardStatsView, LatestOrderView
@@ -31,5 +31,6 @@ urlpatterns = [
     path('payment/fail/', payment_fail, name="payment-fail"),
     path("orders/has_ordered/<int:flower_id>/", HasOrderedProduct.as_view()),
     path("dashboard/stats/", DashboardStatsView.as_view(), name="dashboard-stats"),
-    path("dashboard/orders/latest/", LatestOrderView.as_view(), name="latest-order")
+    path("dashboard/orders/latest/", LatestOrderView.as_view(), name="latest-order"),
+    path("dashboard/my/review/", MyReviewListAPIView.as_view(), name="my-review")
 ]

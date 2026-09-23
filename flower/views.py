@@ -10,6 +10,7 @@ from flower.paginations import DefaultPagination
 from api.permissions import IsAdminOrReadOnly
 from flower.permissions import IsReviewAuthorOrReadonly
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework import generics, permissions
 
 class FlowerViewSet(ModelViewSet):
 
@@ -94,3 +95,18 @@ class ReviewViewSet(ModelViewSet):
     def get_serializer_context(self):
         flower_id = self.kwargs.get('flower_pk')
         return {'flower_id': flower_id}
+
+class MyReviewListAPIView(generics.ListAPIView):
+    """
+    GET /api/my-reviews/
+    Returns only the logged-in user's reviews, newest first.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+ 
+    def get_queryset(self):
+        return (
+            Review.objects
+            .filter(user=self.request.user)
+            .select_related('flower')
+            .order_by('-created_at')
+        )
