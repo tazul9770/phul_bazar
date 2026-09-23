@@ -113,7 +113,6 @@ class MyReviewListAPIView(APIView):
             {
                 "id": review.id,
                 "flower_name": review.flower.name,
-                "flower_image": review.flower.image.url if review.flower.image else None,
                 "ratings": review.ratings,
                 "comment": review.comment,
                 "date": review.created_at.strftime("%Y-%m-%d"),
