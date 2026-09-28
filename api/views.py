@@ -1,14 +1,16 @@
 from django.shortcuts import render
-from datetime import timedelta
-from decimal import Decimal
-
-from django.db.models import Sum
-from django.utils import timezone
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated, IsAdminUser 
 from order.models import CartItem, Order
 from flower.models import Review
+from datetime import timedelta
+from decimal import Decimal
+from django.db.models import Count, Sum
+from django.db.models.functions import TruncDate
+from django.utils import timezone
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from flower.models import Flower
+from users.models import User
 
 
 class DashboardStatsView(APIView):
@@ -122,3 +124,70 @@ class LatestOrderView(APIView):
                 ),
             } if first_item else None,
         }
+
+
+def pct_change(current, previous):
+    """Last 7 days vs ager 7 din. Ager data na thakle None."""
+    if not previous:
+        return None if not current else 100.0
+    return round(float(current - previous) / float(previous) * 100, 1)
+
+
+def build_card(qs, date_field, total_value=None, sum_field=None):
+    """
+    qs          : queryset
+    date_field  : created_at / date_joined
+    sum_field   : deoa thakle Sum, na hole Count
+    """
+    now = timezone.now()
+    week_start = now - timedelta(days=7)
+    prev_start = now - timedelta(days=14)
+
+    def agg(queryset):
+        if sum_field:
+            return queryset.aggregate(v=Sum(sum_field))["v"] or Decimal("0")
+        return queryset.count()
+
+    current = agg(qs.filter(**{f"{date_field}__gte": week_start}))
+    previous = agg(qs.filter(**{f"{date_field}__gte": prev_start,
+                                f"{date_field}__lt": week_start}))
+
+    # Last 7 diner daily sparkline (data na thakle 0)
+    today = timezone.localdate()
+    days = [today - timedelta(days=i) for i in range(6, -1, -1)]
+    metric = Sum(sum_field) if sum_field else Count("id")
+    rows = (
+        qs.filter(**{f"{date_field}__date__gte": days[0]})
+        .annotate(day=TruncDate(date_field))
+        .values("day")
+        .annotate(v=metric)
+    )
+    by_day = {r["day"]: r["v"] for r in rows}
+    sparkline = [
+        {"date": d.isoformat(), "value": float(by_day.get(d) or 0)} for d in days
+    ]
+
+    return {
+        "total": float(total_value if total_value is not None else agg(qs)),
+        "change_percent": pct_change(current, previous),
+        "sparkline": sparkline,
+    }
+
+
+class AdminOverviewCardsView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        paid_orders = Order.objects.exclude(
+            status__in=[Order.CANCELED, Order.NOT_PAID]
+        )
+        customers = User.objects.filter(is_staff=False)
+
+        return Response({
+            "revenue": build_card(
+                paid_orders, "created_at", sum_field="total_price",
+            ),
+            "orders": build_card(Order.objects.all(), "created_at"),
+            "customers": build_card(customers, "date_joined"),
+            "products": build_card(Flower.objects.all(), "created_at"),
+        })
