@@ -107,7 +107,7 @@ class UpdateOrderSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User  
-        fields = ['id', 'username', 'email', 'address', 'phone_num']
+        fields = ['id', 'first_name', 'email', 'address', 'phone_num']
 
     
 class OrderSerializer(serializers.ModelSerializer):
