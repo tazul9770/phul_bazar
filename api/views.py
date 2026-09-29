@@ -234,3 +234,39 @@ class AdminSalesOverviewView(APIView):
             "range": range_key,
             "results": data,
         })
+
+#admin dashboard order status enpoint create
+STATUS_COLORS = {
+    Order.DELIVERED: "#22c55e",      # green
+    Order.SHIPPED: "#3b82f6",        # blue
+    Order.READY_TO_SHIP: "#f97316",  # orange
+    Order.NOT_PAID: "#ec4899",       # pink
+    Order.CANCELED: "#9ca3af",       # gray
+}
+
+class AdminOrderStatusView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        total = Order.objects.count()
+
+        rows = (
+            Order.objects.values("status")
+            .annotate(count=Count("id"))
+            .order_by("-count")
+        )
+
+        breakdown = [
+            {
+                "status": row["status"],
+                "count": row["count"],
+                "percent": round(row["count"] / total * 100, 1) if total else 0,
+                "color": STATUS_COLORS.get(row["status"], "#9ca3af"),
+            }
+            for row in rows
+        ]
+
+        return Response({
+            "total": total,
+            "breakdown": breakdown,
+        })
