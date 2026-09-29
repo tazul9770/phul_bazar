@@ -10,7 +10,7 @@ class EmptySerializer(serializers.Serializer):
 class SimpleFlowerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Flower
-        fields = ['id', 'name', 'price']
+        fields = ['id', 'name', 'price', 'stock']
 
 class AddCartItemSerializer(serializers.ModelSerializer):
     flower_id = serializers.IntegerField()
