@@ -35,5 +35,5 @@ urlpatterns = [
     path("dashboard/my/review/", MyReviewListAPIView.as_view(), name="my-review"),
     path("dashboard/admin/cards/", views.AdminOverviewCardsView.as_view(), name="admin-card"),
     path("dashboard/admin/sales-overview/", views.AdminSalesOverviewView.as_view(), name="admin-sales-overview"),
-    path("admin/order-status/", views.AdminOrderStatusView.as_view(), name="admin-order-status"),
+    path("dashboard/admin/order-status/", views.AdminOrderStatusView.as_view(), name="admin-order-status"),
 ]
