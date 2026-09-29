@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework.permissions import IsAuthenticated, IsAdminUser 
 from order.models import CartItem, Order
 from flower.models import Review
@@ -11,8 +10,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from flower.models import Flower
 from users.models import User
+from django.db.models.functions import TruncDate
 
 
+#user dashboard card enpoint 
 class DashboardStatsView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -55,7 +56,7 @@ class DashboardStatsView(APIView):
             }
         )
 
-
+#user latest order 
 ESTIMATED_DELIVERY_DAYS = 4
 
 STEP_ORDER = [Order.NOT_PAID, Order.READY_TO_SHIP, Order.SHIPPED, Order.DELIVERED]
@@ -126,6 +127,7 @@ class LatestOrderView(APIView):
         }
 
 
+#admin dashboard enpoint 
 def pct_change(current, previous):
     """Last 7 days vs ager 7 din. Ager data na thakle None."""
     if not previous:
@@ -190,4 +192,45 @@ class AdminOverviewCardsView(APIView):
             "orders": build_card(Order.objects.all(), "created_at"),
             "customers": build_card(customers, "date_joined"),
             "products": build_card(Flower.objects.all(), "created_at"),
+        })
+
+#admin sales overview enpoint create 
+RANGE_DAYS = {
+    "7d": 7,
+    "30d": 30,
+    "90d": 90,
+}
+
+
+class AdminSalesOverviewView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        range_key = request.query_params.get("range", "7d")
+        days = RANGE_DAYS.get(range_key, 7)
+
+        today = timezone.localdate()
+        date_list = [today - timedelta(days=i) for i in range(days - 1, -1, -1)]
+        start_date = date_list[0]
+
+        paid_orders = Order.objects.exclude(
+            status__in=[Order.CANCELED, Order.NOT_PAID]
+        ).filter(created_at__date__gte=start_date)
+
+        rows = (
+            paid_orders
+            .annotate(day=TruncDate("created_at"))
+            .values("day")
+            .annotate(total=Sum("total_price"))
+        )
+        by_day = {r["day"]: r["total"] for r in rows}
+
+        data = [
+            {"date": d.isoformat(), "total": float(by_day.get(d) or 0)}
+            for d in date_list
+        ]
+
+        return Response({
+            "range": range_key,
+            "results": data,
         })
