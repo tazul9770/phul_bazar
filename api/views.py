@@ -350,3 +350,34 @@ class AdminRecentReviewsView(APIView):
             })
 
         return Response(data)
+
+# Recent all review endpoint for admin dashbaord
+class AllReviewsPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = "page_size"
+    max_page_size = 50
+
+
+class AdminAllReviewsView(ListAPIView):
+    permission_classes = [IsAdminUser]
+    pagination_class = AllReviewsPagination
+
+    def get_queryset(self):
+        return Review.objects.select_related("user", "flower").order_by("-created_at")
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+
+        data = []
+        for review in page:
+            data.append({
+                "id": review.id,
+                "customer_name": review.user.first_name,
+                "flower_name": review.flower.name,
+                "ratings": review.ratings,
+                "comment": review.comment,
+                "date": review.created_at,
+            })
+
+        return self.get_paginated_response(data)

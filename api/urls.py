@@ -39,4 +39,5 @@ urlpatterns = [
     path("dashboard/admin/low-stock/", views.AdminLowStockView.as_view(), name="admin-low-stock"),
     path("dashboard/admin/low-stock/all/", views.AdminAllLowStockView.as_view(), name="admin-low-stock-all"),
     path("dashboard/admin/recent-reviews/", views.AdminRecentReviewsView.as_view(), name="admin-recent-reviews"),
+    path("dashboard/admin/recent-reviews/all/", views.AdminAllReviewsView.as_view(), name="admin-recent-reviews-all")
 ]
