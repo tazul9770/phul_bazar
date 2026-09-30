@@ -11,6 +11,8 @@ from rest_framework.views import APIView
 from flower.models import Flower
 from users.models import User
 from django.db.models.functions import TruncDate
+from rest_framework.generics import ListAPIView
+from rest_framework.pagination import PageNumberPagination
 
 
 #user dashboard card enpoint 
@@ -294,3 +296,34 @@ class AdminLowStockView(APIView):
             })
 
         return Response(data)
+
+#all low stock product enpoint
+LOW_STOCK_THRESHOLD = 15
+
+class LowStockPagination(PageNumberPagination):
+    page_size = 10          # protita page e koyta dekhabe
+    page_size_query_param = "page_size"   # frontend theke ?page_size=20 diye customize korte parbe
+    max_page_size = 50
+
+class AdminAllLowStockView(ListAPIView):
+    permission_classes = [IsAdminUser]
+    pagination_class = LowStockPagination
+
+    def get_queryset(self):
+        return Flower.objects.filter(stock__lte=LOW_STOCK_THRESHOLD).order_by("stock")
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+
+        data = []
+        for flower in page:
+            first_image = flower.images.first()
+            data.append({
+                "id": flower.id,
+                "name": flower.name,
+                "stock": flower.stock,
+                "image": first_image.image.url if first_image else None,
+            })
+
+        return self.get_paginated_response(data)
