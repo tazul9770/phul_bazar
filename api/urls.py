@@ -37,5 +37,6 @@ urlpatterns = [
     path("dashboard/admin/sales-overview/", views.AdminSalesOverviewView.as_view(), name="admin-sales-overview"),
     path("dashboard/admin/order-status/", views.AdminOrderStatusView.as_view(), name="admin-order-status"),
     path("dashboard/admin/low-stock/", views.AdminLowStockView.as_view(), name="admin-low-stock"),
-    path("dashboard/admin/low-stock/all/", views.AdminAllLowStockView.as_view(), name="admin-low-stock-all")
+    path("dashboard/admin/low-stock/all/", views.AdminAllLowStockView.as_view(), name="admin-low-stock-all"),
+    path("dashboard/admin/recent-reviews/", views.AdminRecentReviewsView.as_view(), name="admin-recent-reviews"),
 ]

@@ -327,3 +327,26 @@ class AdminAllLowStockView(ListAPIView):
             })
 
         return self.get_paginated_response(data)
+
+# recent review API endpoint for admin dashboard
+class AdminRecentReviewsView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        reviews = (
+            Review.objects.select_related("user", "flower")
+            .order_by("-created_at")[:5]
+        )
+
+        data = []
+        for review in reviews:
+            data.append({
+                "id": review.id,
+                "customer_name": review.user.first_name,
+                "flower_name": review.flower.name,
+                "ratings": review.ratings,
+                "comment": review.comment,
+                "date": review.created_at,
+            })
+
+        return Response(data)
