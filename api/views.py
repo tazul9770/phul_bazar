@@ -270,3 +270,27 @@ class AdminOrderStatusView(APIView):
             "total": total,
             "breakdown": breakdown,
         })
+
+#Low stock product 
+LOW_STOCK_THRESHOLD = 15
+
+class AdminLowStockView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        flowers = (
+            Flower.objects.filter(stock__lte=LOW_STOCK_THRESHOLD)
+            .order_by("stock")[:5]
+        )
+
+        data = []
+        for flower in flowers:
+            first_image = flower.images.first()
+            data.append({
+                "id": flower.id,
+                "name": flower.name,
+                "stock": flower.stock,
+                "image": first_image.image.url if first_image else None,
+            })
+
+        return Response(data)
