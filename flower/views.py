@@ -32,7 +32,7 @@ class FlowerViewSet(ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
     def get_queryset(self):
-        return Flower.objects.prefetch_related('images').all()
+        return Flower.objects.prefetch_related('images').all().order_by('-created_at')
 
     @swagger_auto_schema(
         operation_summary='Retrive a list of flowers'
